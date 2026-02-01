@@ -1,9 +1,10 @@
-<?php
+<?php 
 // responsabile/nuovo_bilancio.php
 session_start();
 require_once '../config/database.php';
 require_once '../config/mongodb.php';
 
+// Controllo accesso
 if (!isset($_SESSION['id_utente']) || $_SESSION['tipo_utente'] !== 'responsabile_aziendale') {
     header('Location: ../auth/login.php');
     exit();
@@ -32,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data_creazione = $_POST['data_creazione'] ?? date('Y-m-d');
 
     try {
+        // Inizio transazione
         $db->beginTransaction();
 
         // Crea bilancio
@@ -42,11 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
         $stmt->closeCursor();
 
+        // Recupera ID bilancio appena creato
         $result = $db->query("SELECT @id_bilancio AS id")->fetch();
-        $id_bilancio = $result['id'];
+        $id_bilancio = $result['id'] ?? 0;
 
         if ($id_bilancio > 0) {
-            // Inserisci valori voci
+            // Inserisci valori delle voci
             foreach ($_POST['voci'] ?? [] as $id_voce => $valore) {
                 if (!empty($valore)) {
                     $stmt = $db->prepare("CALL sp_inserisci_valore_voce(:bilancio, :voce, :valore)");
@@ -59,15 +62,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            $db->commit();
+            // Commit solo se c'è una transazione attiva
+            if ($db->inTransaction()) {
+                $db->commit();
+            }
 
-            logEvent('bilancio_creato', "Nuovo bilancio per azienda: {$azienda['nome']}",
-                     $_SESSION['id_utente'], ['id_bilancio' => $id_bilancio]);
+            // Log MongoDB
+            logEvent(
+                'bilancio_creato', 
+                "Nuovo bilancio per azienda: {$azienda['nome']}",
+                $_SESSION['id_utente'], 
+                ['id_bilancio' => $id_bilancio]
+            );
 
             $successo = "Bilancio creato con successo! ID: {$id_bilancio}";
+        } else {
+            // Se ID non valido, rollback sicuro
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            $errore = "Errore: impossibile recuperare ID bilancio.";
         }
     } catch (PDOException $e) {
-        $db->rollBack();
+        // Rollback solo se transazione attiva
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
         $errore = "Errore creazione bilancio: " . $e->getMessage();
     }
 }
