@@ -69,7 +69,7 @@ $bilanci_recenti = $stmt->fetchAll();
                 <p>Aziende Gestite</p>
             </div>
             <div class="stat-card">
-                <h3><?php echo array_sum(array_column($aziende, 'nr_bilanci')); ?></h3>
+                <h3><?php echo array_sum(array_column($aziende, 'bilanci_reali')); ?></h3>
                 <p>Bilanci Totali</p>
             </div>
             <div class="stat-card">
