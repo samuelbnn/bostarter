@@ -43,7 +43,7 @@ BEGIN
     END IF;
 END$$
 
--- TRIGGER 2b: Aggiorna stato bilancio - UPDATE (QUESTO MANCA!)
+-- TRIGGER 2b: Aggiorna stato bilancio - UPDATE 
 CREATE TRIGGER trg_aggiorna_stato_bilancio_update
 AFTER UPDATE ON giudizio
 FOR EACH ROW
@@ -73,7 +73,7 @@ BEGIN
     END IF;
 END$$
 
--- TRIGGER 3a: Affidabilità revisore - INSERT (QUESTO MANCA!)
+-- TRIGGER 3a: Affidabilità revisore - INSERT 
 CREATE TRIGGER trg_aggiorna_affidabilita_revisore_insert
 AFTER INSERT ON giudizio
 FOR EACH ROW
