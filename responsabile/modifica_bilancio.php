@@ -148,7 +148,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aggiungi_indicatore']
                     <strong>Indicatori ESG collegati:</strong>
                     <ul>
                         <?php foreach ($collegamenti[$voce['id_voce']] as $coll):
-                            $ind = reset(array_filter($indicatori, fn($i) => $i['id_indicatore'] == $coll['id_indicatore'])) ?: null;
+                            $filtered = array_filter($indicatori, fn($i) => $i['id_indicatore'] == $coll['id_indicatore']);
+                             $ind = reset($filtered) ?: null;
                         ?>
                         <li>
                             <strong><?php echo htmlspecialchars($ind['nome'] ?? 'N/D'); ?>:</strong>
